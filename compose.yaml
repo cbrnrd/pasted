@@ -1,0 +1,16 @@
+services:
+  pasted:
+    build:
+      context: .
+      target: final
+    volumes:
+      - ./test.yaml:/config.yaml
+      - files:/app/files
+    environment:
+      - PASTED_CONFIG=/config.yaml
+    ports:
+      - 9999:9999
+      - 8080:8080
+
+volumes:
+  files:

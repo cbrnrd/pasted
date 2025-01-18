@@ -1,0 +1,10 @@
+---
+backend: "file"
+file_backend_root: "./files"
+size_limit_bytes: 30720  # 30KB
+domain: "localhost"
+transformers:
+  - "gzip"
+  - "aes"
+aes_transform:
+  key: "asdf 1234"  # this value is hashed to a 32-byte key
