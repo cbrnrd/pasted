@@ -1,5 +1,6 @@
 services:
   pasted:
+    container_name: pasted
     build:
       context: .
       target: final
@@ -11,6 +12,29 @@ services:
     ports:
       - 9999:9999
       - 8080:8080
+  
+  # Uncomment for redis backend
+  # redis:
+  #   image: redis:alpine
+  #   ports:
+  #     - 6379:6379
+  #   volumes:
+  #     - redis:/data
+  
+  # Uncomment for postgres backend
+  # postgres:
+  #   image: postgres:alpine
+  #   environment:
+  #     POSTGRES_USER: "pasted"
+  #     POSTGRES_PASSWORD: "pasted"
+  #     POSTGRES_DB: "pasted"
+  #   ports:
+  #     - 5432:5432
+  #   volumes:
+  #     - pgdata:/var/lib/postgresql/data
+
 
 volumes:
   files:
+  # redis:
+  # pgdata:

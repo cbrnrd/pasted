@@ -3,7 +3,7 @@
 ################################################################################
 # Create a stage for building the application.
 ARG GO_VERSION=1.23.5
-FROM --platform=$BUILDPLATFORM golang:${GO_VERSION} AS build
+FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine AS build
 WORKDIR /src
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
@@ -12,7 +12,7 @@ WORKDIR /src
 # the container.
 RUN --mount=type=cache,target=/go/pkg/mod/ \
     --mount=type=bind,source=go.mod,target=go.mod \
-    go mod download -x
+    go mod download -x && apk add --no-cache --update go gcc g++
 
 # This is the architecture you're building for, which is passed in by the builder.
 # Placing it here allows the previous steps to be cached across architectures.
@@ -24,7 +24,7 @@ ARG TARGETARCH
 # source code into the container.
 RUN --mount=type=cache,target=/go/pkg/mod/ \
     --mount=type=bind,target=. \
-    CGO_ENABLED=0 GOARCH=$TARGETARCH go build -o /bin/server .
+    CGO_ENABLED=1 GOARCH=$TARGETARCH go build -o /bin/server .
 
 ################################################################################
 # Create a new stage for running the application that contains the minimal

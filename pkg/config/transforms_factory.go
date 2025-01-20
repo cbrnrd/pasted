@@ -20,6 +20,8 @@ func (config *CLIConfig) GetTransforms() ([]transforms.Transformer, error) {
 			t = append(t, aesTransformer)
 		case "gzip":
 			t = append(t, &transforms.GZipTransformer{})
+		case "base64":
+			t = append(t, &transforms.Base64Transformer{})
 		default:
 			return nil, fmt.Errorf("unknown transform %s", tc)
 		}

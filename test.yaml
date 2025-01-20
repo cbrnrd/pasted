@@ -1,8 +1,23 @@
 ---
-backend: "file"
-file_backend_root: "./files"
+backend: "sqlite"
+sqlite: 
+  path: "./files/pasted.db"
+  create_tables: true
+
+# backend: "redis"
+# redis:
+#   addr: "redis:6379"
+#   db: 0
+
+# backend: "postgres"
+# postgres:
+#   conn_string: "host=postgres user=pasted password=pasted dbname=pasted sslmode=disable"
+#   create_tables: true
+
+listen_addr: ":9999"
+http_listen_addr: ":8080"
 size_limit_bytes: 30720  # 30KB
-domain: "localhost"
+domain: "http://localhost:8080"
 transformers:
   - "gzip"
   - "aes"

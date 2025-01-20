@@ -16,7 +16,7 @@ cat file.txt | nc pasted.example.com 9999
 
 ## Installation
 
-To install `pasted`, you can use the provided Docker image:
+To install `pasted`, you can use the provided `compose.yaml` file. This will start up pasted using sqlite as the backend.:
 
 ```sh
 docker compose up -d
@@ -34,6 +34,19 @@ go run main.go --config test.yaml
 
 - `file`: Stores files on disk (default).
 - `memory`: Stores files in memory. Useful for testing.
+- `pgx`: Stores files in a PostgreSQL database.
+- `redis`: Stores files in a Redis database.
+- `sqlite`: Stores files in a SQLite database.
+- `s3`: Stores files in an S3 bucket.
+
+### TODO
+
+- [ ] `azure`: Stores files in an Azure Blob Storage container.
+- [ ] `gcs`: Stores files in a Google Cloud Storage bucket.
+- [ ] `(s)ftp`: Stores files on an FTP or SFTP server.
+- [ ] `smb`: Stores files on an SMB share.
+- [ ] `nfsv4`: Stores files on an NFSv4 share.
+- [ ] `ipfs`: Stores files on IPFS.
 
 
 ## Transforms
@@ -42,6 +55,7 @@ go run main.go --config test.yaml
 
 - `aes`: Encrypts data using AES-256-GCM.
 - `gzip`: Compresses data using Gzip.
+- `base64`: Encodes data using Base64.
 
 ## Contributing
 

@@ -1,6 +1,8 @@
 package transforms
 
-import "io"
+import (
+	"io"
+)
 
 // ChainTransformer chains multiple Transformers together, supporting both forward and reverse transformations.
 type ChainTransformer struct {

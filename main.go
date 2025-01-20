@@ -8,13 +8,14 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/cbrnrd/pasted/pkg/backends"
 	"github.com/cbrnrd/pasted/pkg/config"
 	"github.com/cbrnrd/pasted/pkg/transforms"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httprate"
 	"github.com/urfave/cli/v3"
 	"gopkg.in/yaml.v3"
 )
@@ -25,8 +26,8 @@ func main() {
 		Usage: "A simple pastebin application",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:  "config",
-				Usage: "Path to configuration file",
+				Name:    "config",
+				Usage:   "Path to configuration file",
 				Sources: cli.EnvVars("PASTED_CONFIG"),
 			},
 		},
@@ -46,7 +47,7 @@ func main() {
 			if err := yaml.NewDecoder(configFile).Decode(&config); err != nil {
 				return fmt.Errorf("could not parse config file: %v", err)
 			}
-			spew.Dump(config)
+			// spew.Dump(config)
 			startListeners(&config)
 			return nil
 		},
@@ -72,14 +73,20 @@ func startListeners(cfg *config.CLIConfig) {
 		tfs...,
 	)
 
-	go startPasteListener(backend, transformerChain)
+	go startPasteListener(backend, cfg, transformerChain)
 
-	startWebServer(backend, transformerChain)
+	startWebServer(backend, cfg, transformerChain)
 }
 
-func startWebServer(backend backends.Backend, chain *transforms.ChainTransformer) {
+func startWebServer(backend backends.Backend, cfg *config.CLIConfig, chain *transforms.ChainTransformer) {
 	router := chi.NewRouter()
+
+	router.Use(middleware.RealIP)
+	router.Use(middleware.RequestID)
 	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+	router.Use(httprate.LimitByIP(10, 1*time.Minute))
+
 	router.Get("/{key}", func(w http.ResponseWriter, r *http.Request) {
 		pr, pw := io.Pipe()
 		errCh := make(chan error, 1)
@@ -114,11 +121,11 @@ func startWebServer(backend backends.Backend, chain *transforms.ChainTransformer
 		}
 
 	})
-	http.ListenAndServe(":8080", router)
+	http.ListenAndServe(cfg.HttpListenAddr, router)
 }
 
-func startPasteListener(backend backends.Backend, chain *transforms.ChainTransformer) {
-	l, err := net.Listen("tcp", ":9999")
+func startPasteListener(backend backends.Backend, cfg *config.CLIConfig, chain *transforms.ChainTransformer) {
+	l, err := net.Listen("tcp", cfg.ListenAddr)
 	if err != nil {
 		panic(err)
 	}
@@ -129,11 +136,11 @@ func startPasteListener(backend backends.Backend, chain *transforms.ChainTransfo
 			panic(err)
 		}
 
-		go handlePaste(conn, backend, chain)
+		go handlePaste(conn, cfg, backend, chain)
 	}
 }
 
-func handlePaste(conn net.Conn, backend backends.Backend, chain *transforms.ChainTransformer) {
+func handlePaste(conn net.Conn, cfg *config.CLIConfig, backend backends.Backend, chain *transforms.ChainTransformer) {
 	defer conn.Close()
 
 	transformed, err := chain.Transform(conn)
@@ -145,8 +152,10 @@ func handlePaste(conn net.Conn, backend backends.Backend, chain *transforms.Chai
 	path, err := backend.Put(transformed)
 	if err != nil {
 		io.WriteString(conn, "Error storing paste: "+err.Error())
-		panic(err)
+		return
 	}
+
+	path = cfg.Domain + "/" + path
 
 	io.WriteString(conn, path)
 }
