@@ -1,6 +1,6 @@
 # pasted
 
-`pasted` is a server to receive and store data passed over a socket connection, similar to <termbin.com>.
+`pasted` is a server to receive and store data passed over a socket connection, similar to <https://termbin.com>.
 
 **Note: This project is under active development and will likely break at some point**
 
