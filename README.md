@@ -1,4 +1,4 @@
-# pasted
+![](img/logo.png)
 
 `pasted` is a server to receive and store data passed over a socket connection, similar to <https://termbin.com>.
 
